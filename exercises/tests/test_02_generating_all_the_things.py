@@ -15,72 +15,97 @@ from hypothesis import given, strategies as st
 
 # Exercise 1: Write a strategy the generates even integers
 
-# Your code goes here
-@pytest.mark.skip  # Remove this
+
+@given(st.integers().filter(lambda n: n % 2 == 0))
 def test_even_integers(i):
     assert i % 2 == 0
 
 
-
 # Exercise 2: Write a strategy that generates 2-tuples of integers
 
+
 # Your code goes here
-@pytest.mark.skip  # Remove this
+@given(st.tuples(st.integers(), st.integers()))
 def test_tuples(t):
     assert len(t) == 2
     assert isinstance(t[0], int)
     assert isinstance(t[1], int)
 
 
-
 # Exercise 3: Write a strategy that generates 2-tuples of integers, where the second integer is larger than the first
+@st.composite
+def ordered_tuple(draw) -> tuple[int, float]:
+    a = draw(st.integers())
+    b = draw(st.integers(min_value=a + 1))
 
-# Your code goes here
-@pytest.mark.skip  # Remove this
+    return (a, b)
+
+
+@given(ordered_tuple())
 def test_tuples_with_larger_second_value(t):
     assert len(t) == 2
     assert t[0] < t[1]
 
 
-
 # Exercise 4: Given a dataclass "Container" that stores an integer "id", and a string "value". Write a strategy that generates examples for that dataclass.
 @dataclass
-class Container():
+class Container:
     id: int
     value: str
 
 
-# Your code goes here
-@pytest.mark.skip  # Remove this
+@given(st.builds(Container, st.integers(), st.text()))
 def test_container(container):
     assert isinstance(container, Container)
     assert isinstance(container.id, int)
     assert isinstance(container.value, str)
 
 
-
 # Exercise 5: If we want to write more tests for the Container type, we will have to copy and paste the strategy all over the place. The goal of this example is to make the strategy reusable for different tests. Write a composite strategy that returns Container objects. The composite strategy should have optional keyword arguments that allows users to override the strategies used to generate Container.id and Container.value. If no strategies for Container.id or Container.value are given, fall back to the defaults.
+
 
 @st.composite
 def containers(draw, id=None, value=None) -> Container:
-    # Your code goes here
-    ...
+    return Container(
+        draw(id) if id is not None else draw(st.integers()), draw(value) if value is not None else draw(st.text())
+    )
 
 
-@pytest.mark.skip  # Remove this
-@given(
-    containers(id=st.integers(min_value=1))
-)
+@given(containers(id=st.integers(min_value=1)))
 def test_container_with_positive(container):
     assert isinstance(container, Container)
     assert container.id > 0
     assert isinstance(container.value, str)
 
 
-
 # Bonus exercise 1: Write a Point3D dataclass with three floating point attributes x, y, and z. Write a reusable Hypothesis strategy for Point3D.
 
+
+@dataclass
+class Point3d:
+    x: float
+    y: float
+    z: float
+
+
+@st.composite
+def reusable_point3d_strategy(draw) -> Point3d:
+    return Point3d(
+        draw(st.floats(allow_nan=False, allow_infinity=False, allow_subnormal=False)),
+        draw(st.floats(allow_nan=False, allow_infinity=False, allow_subnormal=False)),
+        draw(st.floats(allow_nan=False, allow_infinity=False, allow_subnormal=False)),
+    )
+
+
+@given(reusable_point3d_strategy())
+def test_point3d(point: Point3d):
+    assert isinstance(point.x, float)
+    assert isinstance(point.y, float)
+    assert isinstance(point.z, float)
+
+
 # Bonus exercise 2: Look at the documentation of the "deferred" strategy (see https://hypothesis.readthedocs.io/en/latest/data.html#hypothesis.strategies.deferred). Write a Hypothesis strategy that generates the following "Node" data structure.
+
 
 @dataclass
 class Node:

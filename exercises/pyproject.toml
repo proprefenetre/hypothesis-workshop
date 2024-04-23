@@ -1,0 +1,21 @@
+[tool.ruff]
+fix = true
+extend-select = ["I", "N", "UP", "B", "C4", "SIM", "PTH", "TRY", "RUF"]
+line-length = 120
+
+# Allow unused variables when underscore-prefixed.
+dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
+
+[tool.ruff.flake8-tidy-imports]
+ban-relative-imports = "all"
+
+[tool.black]
+line-length=120
+
+[tool.mypy]
+mypy_path = "."
+namespace_packages = true
+explicit_package_bases = true
+
+[tool.pytest.ini_options]
+testpaths = ["."]
